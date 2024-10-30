@@ -1,0 +1,144 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
+
+body {
+    font-family: 'Roboto', Arial, sans-serif;
+}
+
+.main-content {
+    transition: margin-right 0.3s ease-in-out;
+}
+
+.main-content.sidebar-open {
+    margin-right: 300px; /* Aumentar el margen derecho para que coincida con el nuevo ancho de la barra lateral */
+}
+
+.nav-left {
+    position: relative;
+    position: sticky; /* O usa 'fixed' si lo quieres siempre visible */
+    top: 0; /* Asegúrate de que se mantenga en la parte superior */
+    z-index: 1000; /* Asegúrate de que esté encima de otros elementos */
+}
+
+.sidebar {
+    width: 340px; /* Ancho de la barra lateral */
+    background-color: #f8f9fa;
+    padding: 15px;
+    position: fixed;
+    left: 0; /* Cambiado a izquierda */
+    top: 70px; /* Asegura que no colisione con el header */
+    bottom: 0;
+    overflow-y: auto; /* Desplazamiento vertical si es necesario */
+    overflow-x: hidden; /* Evitar desplazamiento horizontal */
+    transform: translateX(-100%); /* Cambiado a -100% para ocultar la barra lateral */
+    transition: transform 0.3s ease-in-out;
+    z-index: 999;
+    box-sizing: border-box;
+    margin-top: 10px;
+}
+
+.sidebar.open {
+    transform: translateX(0); /* Muestra la barra lateral cuando está abierta */
+}
+
+.text-center {
+    text-align: center;
+    color: #7fbf7f;
+}
+
+.content-section h3 {
+    font-size: 1.25rem;
+    margin-bottom: 10px;
+    color: #7fbf7f;
+}
+
+.text-muted {
+    color: #6c757d;
+}
+
+.button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px; /* Espacio entre los botones */
+    width: 100%; /* Asegura que los botones ocupen el 100% del contenedor */
+    box-sizing: border-box; /* Incluye padding y border en el ancho total */
+}
+
+.list-group-item {
+    background-color: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+    padding: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    text-align: center;
+    font-size: 1rem;
+    color: #7fbf7f;
+    width: 100%; /* Asegura que los botones ocupen el 100% del contenedor */
+    box-sizing: border-box; /* Considera padding y border dentro del ancho */
+    text-decoration: none; /* Quita el subrayado */
+}
+
+.list-group-item:hover {
+    background-color: #c4ffc4; /* Cambia a verde pastel cuando se pasa el mouse */
+}
+
+.list-group-item:focus {
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.hamburger {
+    position: fixed;
+    left: 15px;
+    top: 70px;
+    background-color: #7fbf7f;
+    border: none;
+    color: white;
+    padding: 6px 9px; /* Aumentar el relleno para hacerlo más ancho */
+    font-size: 24px;
+    cursor: pointer;
+    border-radius: 5px;
+    z-index: 1000;
+    margin-top: 10px;
+}
+
+.hamburger:focus {
+    outline: none;
+}
+
+/* Media Queries para responsividad */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 50%; /* Ancho de la barra lateral en pantallas pequeñas */
+        top: 0; 
+        bottom: 0;
+        margin-top: 190px; /* Aumenta el margin-top en pantallas pequeñas */
+        padding-right: 15px;
+        max-height: calc(100vh - 100px);
+        overflow-y: auto; /* Desplazamiento en pantallas pequeñas */
+    }
+
+    .button-group {
+        margin-right: 0; 
+    }
+
+    .list-group-item {
+        width: calc(100% - 10px); /* Asegura que los botones se adapten al ancho en pantallas pequeñas */
+        box-sizing: border-box;
+    }
+
+    .hamburger {
+        top: 15px; /* Ajusta la posición del botón en pantallas pequeñas */
+    }
+}
+
+@media (max-width: 480px) {
+    .sidebar {
+        width: 100%; /* Barra lateral más ancha en pantallas muy pequeñas */
+        margin-top: 190px; /* Mayor margin-top en pantallas más pequeñas para evitar colisión */
+    }
+
+    .hamburger {
+        top: 15px; /* Ajusta la posición del botón en pantallas muy pequeñas */
+    }
+}

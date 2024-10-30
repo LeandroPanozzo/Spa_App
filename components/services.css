@@ -1,0 +1,102 @@
+.services-page {
+  background-color: #ffffff;
+  padding: 40px 0;
+  font-family: 'Roboto', sans-serif;
+}
+
+.services-title {
+  color: #ff7f8a;
+  font-size: 2.5rem;
+  text-align: center;
+  margin-bottom: 20px;
+  margin-top: 120px;
+}
+
+.services-description {
+  color: #5ec75e;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 30px;
+  margin: 0 20px; /* Margen a la izquierda y derecha */
+}
+
+.service-card {
+  background-color: #ffffff;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.service-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+}
+
+.service-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.service-content {
+  padding: 20px;
+}
+
+.service-title {
+  color: #ff7f8a;
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+}
+
+.service-description {
+  color: #5ec75e;
+  font-size: 1rem;
+  line-height: 1.5;
+  margin-bottom: 15px;
+}
+
+.service-price {
+  color: #5ec75e;
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.book-button {
+  background-color: #ff7f8a;
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  width: 100%;
+}
+
+.book-button:hover {
+  background-color: #ffb6c1;
+  transform: translateY(-3px);
+  box-shadow: 0 4px 10px rgba(255, 182, 193, 0.3);
+}
+
+/* Estilos para dispositivos móviles */
+@media (max-width: 768px) {
+  .services-title, 
+  .services-description, 
+  .service-card {
+      margin: 60px 0; /* Margen superior e inferior de 40px */
+  }
+
+  .services-grid {
+      grid-template-columns: 1fr;
+  }
+}

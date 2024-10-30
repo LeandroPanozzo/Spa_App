@@ -1,0 +1,133 @@
+/* ClientsByProfessional.css */
+
+/* Estilo para la página de clientes por profesional */
+.clients-by-professional-page {
+    padding: 60px 20px;
+    font-family: 'Roboto', sans-serif;
+    margin-top: 0px;
+}
+
+.page-title {
+    font-size: 2.5rem;
+    color: #ff7f8a;
+    text-align: center;
+    margin-bottom: 50px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+}
+
+/* Estilo para el contenedor de filtros */
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px; /* Espacio entre los filtros */
+    margin-bottom: 30px;
+    background-color: #ffffff; /* Fondo blanco para destacar los filtros */
+    padding: 20px; /* Espacio interno */
+    border-radius: 8px; /* Esquinas redondeadas */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra suave */
+    align-items: center; /* Alinear verticalmente los elementos */
+}
+
+/* Estilo de las etiquetas de filtro */
+.filter-label {
+    font-family: 'Poppins', sans-serif; /* Usar fuente Poppins */
+    font-weight: 500; /* Peso moderado */
+    color: #333; /* Color gris oscuro */
+    margin-right: 10px; /* Espaciado a la derecha */
+    font-size: 1rem; /* Tamaño de fuente moderado */
+    text-transform: uppercase; /* Texto en mayúsculas */
+    display: flex; /* Usar flex para centrar verticalmente */
+    align-items: center; /* Centrar verticalmente */
+}
+
+/* Estilos para select e input */
+.filter-select, .filter-input {
+    padding: 10px 15px; /* Padding más cómodo */
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+    width: 150px; /* Ancho consistente */
+    transition: border-color 0.3s, box-shadow 0.3s, background-color 0.3s; /* Transiciones suaves */
+    background-color: #ffffff; /* Fondo blanco */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sombra suave */
+}
+
+/* Estilo al enfocar select e input */
+.filter-select:focus, .filter-input:focus {
+    border-color: #4ea74e; /* Color de borde verde */
+    outline: none; /* Sin borde de enfoque */
+    box-shadow: 0 0 8px rgba(78, 167, 78, 0.5); /* Sombra de enfoque */
+    background-color: #f5fff2; /* Fondo verde claro */
+}
+
+/* Estilos para los botones de filtrado */
+.filter-button {
+    padding: 10px 20px; /* Padding adecuado */
+    background-color: #4ea74e; /* Color verde */
+    color: white;
+    border: none;
+    border-radius: 20px; /* Esquinas redondeadas */
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s; /* Transiciones suaves */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Sombra suave */
+}
+
+/* Efecto hover para los botones */
+.filter-button:hover {
+    background-color: #5fc55f; /* Color verde más oscuro al pasar el mouse */
+    transform: translateY(-2px); /* Levantar ligeramente el botón */
+    box-shadow: 0 4px 15px rgba(78, 167, 78, 0.3); /* Sombra más intensa */
+}
+
+/* Grupo de botones */
+.button-groupp {
+    display: flex;
+    gap: 10px; /* Espacio entre botones */
+    justify-content: center; /* Centra los botones horizontalmente */
+    align-items: center; /* Alinear verticalmente los botones */
+}
+
+/* Estilos para el contenedor de profesionales */
+.professionals-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Estilo para cada tarjeta de profesional */
+.professional-card {
+    background-color: #ffffff; /* Fondo blanco */
+    border-radius: 8px; /* Esquinas redondeadas */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra suave */
+    padding: 15px;
+    margin: 10px 0;
+    width: 80%; /* Ancho ajustado */
+}
+
+/* Estilo del título del profesional */
+.professional-title {
+    cursor: pointer;
+    color: #28a745; /* Color verde */
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+/* Estilo para la lista de citas */
+.appointments-list {
+    margin-top: 10px;
+    list-style-type: none;
+    padding: 0;
+}
+
+/* Estilo de cada cita */
+.appointment-item {
+    background-color: #f9f9f9; /* Fondo gris claro */
+    border-radius: 5px; /* Esquinas redondeadas */
+    padding: 10px;
+    margin: 5px 0;
+    border-left: 4px solid #4ea74e; /* Borde verde a la izquierda */
+}
