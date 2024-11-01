@@ -7,6 +7,8 @@ import HomeScreen from './pages/HomeScreen';
 import DetailsScreen from './pages/DetailsScreen';
 import LoginScreen from './pages/LoginScreen';
 import RegisterScreen from './pages/RegisterScreen';
+import QueryAndResponseComponent from './pages/QueryAndResponseComponent';
+import AppointmentsList from './pages/AppointmentsList';
 
 // Crea instancias de los navegadores
 const Stack = createNativeStackNavigator();
@@ -20,7 +22,8 @@ const App = () => {
           {/* Aquí defines las pantallas que quieres que estén en el Drawer */}
           <Drawer.Screen name="Home" component={HomeScreen} />
           <Drawer.Screen name="Details" component={DetailsScreen} />
-
+          <Drawer.Screen name="consultas" component={QueryAndResponseComponent} />
+          <Drawer.Screen name="AppointmentsList" component={AppointmentsList} />
           <Drawer.Screen name="Login" component={LoginScreen} />
           <Drawer.Screen name="Register" component={RegisterScreen} />
         </Drawer.Navigator>

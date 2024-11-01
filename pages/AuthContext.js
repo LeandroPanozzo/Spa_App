@@ -1,17 +1,22 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
-import jwtDecode from 'jwt-decode';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_URL } from '@env';
+import { API_URL } from './config';
 import Toast from 'react-native-toast-message';
 
 const AuthContext = createContext();
+
+const parseJWT = (token) => {
+  const payload = token.split('.')[1];
+  const decodedPayload = JSON.parse(atob(payload));
+  return decodedPayload;
+};
 
 const isValidJWT = (token) => {
   if (!token) return false;
 
   try {
-    const decoded = jwtDecode(token);
+    const decoded = parseJWT(token);
     const currentTime = Date.now() / 1000;
     return decoded.exp && decoded.exp > currentTime;
   } catch (error) {
@@ -86,7 +91,7 @@ export function AuthProvider({ children }) {
         throw new Error('Token inválido o no encontrado');
       }
 
-      const decoded = jwtDecode(token);
+      const decoded = parseJWT(token);
       const userId = decoded.user_id;
 
       const response = await axios.get(`/sentirseBien/users/${userId}/`);
