@@ -15,11 +15,7 @@ const LoginScreen = () => {
   const navigation = useNavigation();
 
   const checkConfiguration = () => {
-    console.log('Verificando configuración...');
-    console.log('API_URL:', API_URL);
-    
     if (!API_URL) {
-      console.error('API_URL no está configurada');
       Alert.alert(
         'Error de Configuración',
         'La URL de la API no está configurada correctamente. Por favor, contacte al administrador.'
@@ -42,7 +38,6 @@ const LoginScreen = () => {
     setIsLoading(true);
     try {
       console.log('Iniciando solicitud de login a:', `${API_URL}/sentirseBien/api/v1/token/`);
-      
       const response = await axios.post(`${API_URL}/sentirseBien/api/v1/token/`, {
         username: username.trim(),
         password: password.trim(),
@@ -52,18 +47,43 @@ const LoginScreen = () => {
         throw new Error('Respuesta del servidor inválida: falta token de acceso');
       }
 
+      // Almacenar los tokens
       await AsyncStorage.setItem('access_token', response.data.access);
       if (response.data.refresh) {
         await AsyncStorage.setItem('refresh_token', response.data.refresh);
       }
 
-      const storedToken = await AsyncStorage.getItem('access_token');
-      if (!storedToken) {
-        throw new Error('Error al almacenar el token');
-      }
-
       axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.access}`;
 
+      // Solicitar los detalles del usuario
+      const userDetailsResponse = await axios.get(`${API_URL}/sentirseBien/api/v1/user/`);
+      const userDetails = userDetailsResponse.data;
+      if (Array.isArray(userDetails) && userDetails.length > 0) {
+        const userDetail = userDetails[0]; // Toma el primer objeto del arreglo
+      
+        // Accede a las propiedades exactas como están en el objeto
+        console.log(userDetail.is_owner);
+        console.log(userDetail.is_professional);
+        console.log(userDetail.is_secretary);
+      
+        // Verificación para denegar acceso si alguna de estas es `true`
+        if (userDetail.is_owner || userDetail.is_professional || userDetail.is_secretary) {
+          Alert.alert('Acceso Denegado', 'Su cuenta no tiene permiso para iniciar sesión.');
+          // Limpiar tokens almacenados
+          await AsyncStorage.removeItem('access_token');
+          await AsyncStorage.removeItem('refresh_token');
+          return;
+        } else {
+          console.log("Acceso permitido");
+        }
+      } else {
+        console.log("No se encontró el usuario en la respuesta de la API.");
+      }
+      ;
+      // Verificar los campos booleanos
+      
+
+      // Continuar con el inicio de sesión
       await login();
       navigation.navigate('Home');
       Toast.show({

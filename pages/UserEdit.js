@@ -5,6 +5,7 @@ import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import { Toast } from 'react-native-toast-message'; // Asegúrate de tener react-native-toast-message instalado
 import { useAuth } from './AuthContext';
 import { API_URL } from './config'; // Importa la URL de configuración
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export function UserEdit() {
     const [formData, setFormData] = useState({
@@ -23,6 +24,7 @@ export function UserEdit() {
     }, []);
 
     const fetchUserData = async () => {
+        setError('');
         try {
             const response = await axios.get(`${API_URL}/sentirseBien/api/v1/user/update/`);
             setFormData({
@@ -33,42 +35,44 @@ export function UserEdit() {
                 password: '',
                 confirmPassword: '',
             });
+            
         } catch {
+            console.error("Error details:", error); // Log para más detalles
             setError('Error al cargar los datos del usuario');
         }
     };
 
     // Configuración de interceptores de axios
-    axios.interceptors.request.use(
-        (config) => {
-            const token = localStorage.getItem('access_token');
-            if (token) {
-                config.headers['Authorization'] = `Bearer ${token}`;
-            }
-            return config;
-        },
-        (error) => Promise.reject(error)
-    );
-
-    axios.interceptors.response.use(
-        (response) => response,
-        async (error) => {
-            const originalRequest = error.config;
-            if (error.response.status === 401 && !originalRequest._retry) {
-                originalRequest._retry = true;
-                try {
-                    const refreshToken = localStorage.getItem('refresh_token');
-                    const response = await axios.post(`${API_URL}/api/token/refresh/`, { refresh: refreshToken });
-                    localStorage.setItem('access_token', response.data.access);
-                    return axios(originalRequest);
-                } catch {
-                    logout();
-                    return Promise.reject(error);
-                }
-            }
-            return Promise.reject(error);
+axios.interceptors.request.use(
+    async (config) => {
+        const token = await AsyncStorage.getItem('access_token'); // Cambiado a AsyncStorage
+        if (token) {
+            config.headers['Authorization'] = `Bearer ${token}`;
         }
-    );
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
+
+axios.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+        const originalRequest = error.config;
+        if (error.response.status === 401 && !originalRequest._retry) {
+            originalRequest._retry = true;
+            try {
+                const refreshToken = await AsyncStorage.getItem('refresh_token'); // Cambiado a AsyncStorage
+                const response = await axios.post(`${API_URL}/api/token/refresh/`, { refresh: refreshToken });
+                await AsyncStorage.setItem('access_token', response.data.access); // Cambiado a AsyncStorage
+                return axios(originalRequest);
+            } catch {
+                logout();
+                return Promise.reject(error);
+            }
+        }
+        return Promise.reject(error);
+    }
+);
 
     const handleChange = (name, value) => {
         setFormData((prevData) => ({ ...prevData, [name]: value }));
@@ -98,7 +102,7 @@ export function UserEdit() {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.pageTitle}>Editar Perfil</Text>
+            <Text style={styles.pageTitle}>Editar Perfill</Text>
             {error && <Text style={styles.errorText}>{error}</Text>}
             <TextInput
                 style={styles.input}
@@ -168,4 +172,5 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
     },
 });
+
 export default UserEdit;

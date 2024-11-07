@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, FlatList, StyleSheet, Alert, ScrollView } from 'react-native';
+import { View, Text, TextInput, Button, FlatList, StyleSheet } from 'react-native';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
 import Toast from 'react-native-toast-message';
 import { API_URL } from './config';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export function CommentsList() {
   const [posts, setPosts] = useState([]);
@@ -45,79 +46,73 @@ export function CommentsList() {
     }
   };
 
-  const setupAxiosInterceptors = () => {
-    axios.interceptors.request.use(
-      (config) => {
-        const token = localStorage.getItem('access_token');
+  axios.interceptors.request.use(
+    async (config) => {
+        const token = await AsyncStorage.getItem('access_token');
         if (token) {
-          config.headers['Authorization'] = `Bearer ${token}`;
+            config.headers['Authorization'] = `Bearer ${token}`;
         }
         return config;
-      },
-      (error) => Promise.reject(error)
-    );
+    },
+    (error) => Promise.reject(error)
+  );
 
-    axios.interceptors.response.use(
-      (response) => response,
-      async (error) => {
+  axios.interceptors.response.use(
+    (response) => response,
+    async (error) => {
         const originalRequest = error.config;
         if (error.response.status === 401 && !originalRequest._retry) {
-          originalRequest._retry = true;
-          try {
-            const refreshToken = localStorage.getItem('refresh_token');
-            const response = await axios.post(`${API_URL}/sentirseBien/api/v1/token/refresh/`, { refresh: refreshToken });
-            localStorage.setItem('access_token', response.data.access);
-            axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.access}`;
-            return axios(originalRequest);
-          } catch (refreshError) {
-            logout();
-            return Promise.reject(refreshError);
-          }
+            originalRequest._retry = true;
+            try {
+                const refreshToken = await AsyncStorage.getItem('refresh_token');
+                const response = await axios.post(`${API_URL}/api/token/refresh/`, { refresh: refreshToken });
+                await AsyncStorage.setItem('access_token', response.data.access);
+                return axios(originalRequest);
+            } catch {
+                logout();
+                return Promise.reject(error);
+            }
         }
         return Promise.reject(error);
-      }
-    );
-  };
+    }
+  );
 
-  useEffect(() => {
-    setupAxiosInterceptors();
-  }, []);
+  const renderHeader = () => (
+    !isStaff && (
+      <View style={styles.formContainer}>
+        <Text style={styles.formTitle}>Crear Publicación</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Título del post"
+          value={titulo}
+          onChangeText={setTitulo}
+        />
+        <TextInput
+          style={[styles.input, styles.textarea]}
+          placeholder="Contenido del post"
+          value={contenido}
+          onChangeText={setContenido}
+          multiline
+        />
+        {!isAuthenticated && (
+          <TextInput
+            style={styles.input}
+            placeholder="Alias para postear"
+            value={alias}
+            onChangeText={setAlias}
+          />
+        )}
+        <Button title="Crear Publicación" onPress={handlePostSubmit} color="#28a745" />
+      </View>
+    )
+  );
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.mainTitle}>Publicaciones</Text>
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
-      { !isStaff && (
-          <View style={styles.formContainer}>
-            <Text style={styles.formTitle}>Crear Publicación</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Título del post"
-              value={titulo}
-              onChangeText={setTitulo}
-            />
-            <TextInput
-              style={[styles.input, styles.textarea]}
-              placeholder="Contenido del post"
-              value={contenido}
-              onChangeText={setContenido}
-              multiline
-            />
-            {!isAuthenticated && (
-              <TextInput
-                style={styles.input}
-                placeholder="Alias para postear"
-                value={alias}
-                onChangeText={setAlias}
-              />
-            )}
-            <Button title="Crear Publicación" onPress={handlePostSubmit} color="#28a745" />
-          </View>
-        )
-      }
+    <View style={styles.container}>
       <FlatList
         data={posts}
         keyExtractor={(post) => post.id.toString()}
+        ListHeaderComponent={renderHeader}
         renderItem={({ item }) => (
           <View style={styles.post}>
             <Text style={styles.postTitle}>{item.titulo}</Text>
@@ -126,11 +121,13 @@ export function CommentsList() {
             <Text style={styles.postTime}>{item.time_since_posted}</Text>
           </View>
         )}
+        ListEmptyComponent={error && <Text style={styles.errorText}>{error}</Text>}
       />
       <Toast />
-    </ScrollView>
+    </View>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     padding: 20,

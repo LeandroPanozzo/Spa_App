@@ -12,6 +12,7 @@ import AppointmentsList from './pages/AppointmentsList';
 import CommentsList from './pages/CommentsList';
 import Announcements from './pages/Announcements';
 import UserEdit from './pages/UserEdit';
+import PaymentPage from './pages/PaymentPage'; // Ajusta según la ruta real
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -25,6 +26,7 @@ const CustomHeader = () => (
     </View>
   </View>
 );
+
 
 const AppNavigator = () => {
   const { isAuthenticated } = useAuth();
@@ -44,6 +46,7 @@ const AppNavigator = () => {
           <Drawer.Screen name="Comentarios" component={CommentsList} />
           <Drawer.Screen name="Anuncios" component={Announcements} />
           <Drawer.Screen name="Editar perfil" component={UserEdit} />
+        
         </>
       ) : (
         <>
@@ -52,6 +55,7 @@ const AppNavigator = () => {
           <Drawer.Screen name="Register" component={RegisterScreen} />
         </>
       )}
+      
     </Drawer.Navigator>
   );
 };
@@ -60,7 +64,11 @@ const App = () => {
   return (
     <AuthProvider>
       <NavigationContainer>
-        <AppNavigator />
+        <Stack.Navigator>
+          <Stack.Screen name = "AppNavigator" component = {AppNavigator}/>
+          <Stack.Screen name="Payment" component={PaymentPage} />
+          
+        </Stack.Navigator>
       </NavigationContainer>
     </AuthProvider>
   );
