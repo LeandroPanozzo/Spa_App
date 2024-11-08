@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TextInput, Button, Alert, FlatList } from 'react-native';
+import { StyleSheet, Text, View, TextInput, Alert, FlatList, TouchableOpacity } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from './AuthContext';
-import { API_URL } from './config'; // Importa desde config.js
+import { API_URL } from './config'; 
 import Toast from 'react-native-toast-message';
 
 const QueryAndResponseComponent = () => {
@@ -124,21 +124,30 @@ const QueryAndResponseComponent = () => {
     return (
       <View style={styles.queryCard}>
         <Text style={styles.queryTitle}>Asunto: {item.title}</Text>
-        <Text>Por: {item.user.first_name} {item.user.last_name}</Text>
-        <Text>{item.content}</Text>
-        <Button title="Eliminar" onPress={() => handleDeleteQuery(item.id)} color="red" />
+        <Text style={styles.queryUser}>Por: {item.user.first_name} {item.user.last_name}</Text>
+        <Text style={styles.queryContent}>{item.content}</Text>
+        
+        {/* Usamos TouchableOpacity en lugar de Button */}
+        <TouchableOpacity onPress={() => handleDeleteQuery(item.id)} style={styles.deleteButton}>
+          <Text style={styles.deleteButtonText}>Eliminar</Text>
+        </TouchableOpacity>
+
         <TextInput
           style={styles.responseInput}
           placeholder="Tu respuesta"
           value={newResponse.query === item.id ? newResponse.content : ''}
           onChangeText={(text) => setNewResponse({ content: text, query: item.id })}
         />
-        <Button title="Responder" onPress={() => handleNewResponseSubmit(item.id)} />
+
+        <TouchableOpacity onPress={() => handleNewResponseSubmit(item.id)} style={styles.submitButton}>
+          <Text style={styles.submitButtonText}>Responder</Text>
+        </TouchableOpacity>
+
         <View>
           {filteredResponses.map(response => (
             <View key={response.id} style={styles.responseCard}>
-              <Text>Respondido por: {response.user.first_name} {response.user.last_name}</Text>
-              <Text>{response.content}</Text>
+              <Text style={styles.responseUser}>Respondido por: {response.user.first_name} {response.user.last_name}</Text>
+              <Text style={styles.responseContent}>{response.content}</Text>
             </View>
           ))}
         </View>
@@ -165,12 +174,18 @@ const QueryAndResponseComponent = () => {
         value={newQuery.content}
         onChangeText={(text) => setNewQuery({ ...newQuery, content: text })}
       />
-      <Button title="Crear Consulta" onPress={handleNewQuerySubmit} />
+
+      {/* Usamos TouchableOpacity en lugar de Button */}
+      <TouchableOpacity onPress={handleNewQuerySubmit} style={styles.submitButton}>
+        <Text style={styles.submitButtonText}>Crear Consulta</Text>
+      </TouchableOpacity>
+
       <FlatList
         data={queries}
         renderItem={renderQueryItem}
         keyExtractor={(item) => item.id.toString()}
       />
+
       <Toast />
     </View>
   );
@@ -180,41 +195,94 @@ const styles = StyleSheet.create({
   container: {
     padding: 16,
     flex: 1,
+    backgroundColor: '#f8f8f8',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 16,
+    color: '#333',
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 10,
-    marginBottom: 10,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
+    backgroundColor: '#fff',
+    marginBottom: 16,
   },
   queryCard: {
     marginBottom: 16,
-    padding: 10,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: '#ddd',
+    padding: 15,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
   },
   queryTitle: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: '#333',
+  },
+  queryUser: {
+    fontSize: 14,
+    color: '#888',
+    marginVertical: 5,
+  },
+  queryContent: {
+    fontSize: 16,
+    color: '#555',
+    marginBottom: 10,
+  },
+  deleteButton: {
+    backgroundColor: '#f44336',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+  deleteButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
   responseInput: {
     borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 10,
-    marginVertical: 10,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
+    backgroundColor: '#fff',
+    marginBottom: 16,
+  },
+  submitButton: {
+    backgroundColor: '#4CAF50',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 30,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  submitButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
   responseCard: {
-    marginTop: 5,
-    padding: 5,
-    backgroundColor: '#e9e9e9',
-    borderRadius: 5,
+    padding: 12,
+    backgroundColor: '#f1f1f1',
+    borderRadius: 8,
+    marginTop: 10,
+  },
+  responseUser: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  responseContent: {
+    fontSize: 16,
+    color: '#555',
   },
 });
 

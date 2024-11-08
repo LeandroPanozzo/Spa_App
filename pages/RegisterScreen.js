@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TextInput, Button, Alert } from 'react-native';
+import { StyleSheet, Text, View, TextInput, Button, Alert, ScrollView, TouchableOpacity } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from './AuthContext';
-import { API_URL } from './config'; // Importa desde config.js
+import { API_URL } from './config';
 import Toast from 'react-native-toast-message';
 import { useNavigation } from '@react-navigation/native';
 
@@ -86,7 +86,7 @@ const RegisterScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Registrarse</Text>
       <TextInput
         style={styles.input}
@@ -134,33 +134,61 @@ const RegisterScreen = () => {
         onChangeText={setConfirmPassword}
         secureTextEntry
       />
-      <Button title="Registrarse" onPress={handleRegister} />
+
+      <TouchableOpacity style={styles.button} onPress={handleRegister}>
+        <Text style={styles.buttonText}>Registrarse</Text>
+      </TouchableOpacity>
+
       <Toast />
-    </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#fff',
+    flexGrow: 1,
+    backgroundColor: '#f4f7f6',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 16,
+    paddingTop: 30,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
+    fontWeight: '600',
     marginBottom: 20,
-    textAlign: 'center',
+    color: '#333',
   },
   input: {
     width: '100%',
-    padding: 10,
-    borderColor: '#ccc',
+    padding: 12,
+    borderColor: '#ddd',
     borderWidth: 1,
-    borderRadius: 5,
+    borderRadius: 10,
+    backgroundColor: '#fff',
     marginBottom: 15,
+    fontSize: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 2,
+  },
+  button: {
+    width: '100%',
+    padding: 14,
+    backgroundColor: '#4CAF50',
+    borderRadius: 10,
+    marginTop: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 3,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '600',
   },
 });
 
 export default RegisterScreen;
+

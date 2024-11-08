@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TextInput, Button, Alert } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from './AuthContext';
@@ -59,29 +59,14 @@ const LoginScreen = () => {
       const userDetailsResponse = await axios.get(`${API_URL}/sentirseBien/api/v1/user/`);
       const userDetails = userDetailsResponse.data;
       if (Array.isArray(userDetails) && userDetails.length > 0) {
-        const userDetail = userDetails[0]; // Toma el primer objeto del arreglo
-      
-        // Accede a las propiedades exactas como están en el objeto
-        console.log(userDetail.is_owner);
-        console.log(userDetail.is_professional);
-        console.log(userDetail.is_secretary);
-      
-        // Verificación para denegar acceso si alguna de estas es `true`
+        const userDetail = userDetails[0];
         if (userDetail.is_owner || userDetail.is_professional || userDetail.is_secretary) {
           Alert.alert('Acceso Denegado', 'Su cuenta no tiene permiso para iniciar sesión.');
-          // Limpiar tokens almacenados
           await AsyncStorage.removeItem('access_token');
           await AsyncStorage.removeItem('refresh_token');
           return;
-        } else {
-          console.log("Acceso permitido");
         }
-      } else {
-        console.log("No se encontró el usuario en la respuesta de la API.");
       }
-      ;
-      // Verificar los campos booleanos
-      
 
       // Continuar con el inicio de sesión
       await login();
@@ -138,9 +123,7 @@ const LoginScreen = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Iniciar Sesión</Text>
-      {__DEV__ && (
-        <Text style={styles.debugInfo}>API URL: {API_URL}</Text>
-      )}
+
       <TextInput
         style={styles.input}
         placeholder="Nombre de Usuario"
@@ -150,6 +133,7 @@ const LoginScreen = () => {
         autoCorrect={false}
         editable={!isLoading}
       />
+
       <TextInput
         style={styles.input}
         placeholder="Contraseña"
@@ -158,11 +142,19 @@ const LoginScreen = () => {
         secureTextEntry
         editable={!isLoading}
       />
-      <Button
-        title={isLoading ? "Cargando..." : "Iniciar Sesión"}
+
+      <TouchableOpacity
+        style={[styles.button, isLoading && styles.buttonDisabled]}
         onPress={handleLogin}
         disabled={isLoading}
-      />
+      >
+        {isLoading ? (
+          <ActivityIndicator size="small" color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>Iniciar Sesión</Text>
+        )}
+      </TouchableOpacity>
+
       <Toast />
     </View>
   );
@@ -171,28 +163,52 @@ const LoginScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#f7f7f7',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 16,
+    padding: 20,
   },
   title: {
-    fontSize: 24,
-    marginBottom: 20,
-    textAlign: 'center',
+    fontSize: 30,
+    fontWeight: 'bold',
+    color: '#2C3E50',
+    marginBottom: 30,
   },
   debugInfo: {
     fontSize: 12,
-    color: '#666',
-    marginBottom: 10,
+    color: '#7F8C8D',
+    marginBottom: 15,
   },
   input: {
     width: '100%',
-    padding: 10,
-    borderColor: '#ccc',
+    padding: 15,
+    borderColor: '#BDC3C7',
     borderWidth: 1,
-    borderRadius: 5,
-    marginBottom: 15,
+    borderRadius: 30,
+    marginBottom: 20,
+    fontSize: 16,
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  button: {
+    width: '100%',
+    padding: 15,
+    borderRadius: 30,
+    backgroundColor: '#28a745',
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 5,
+  },
+  buttonDisabled: {
+    backgroundColor: '#BDC3C7',
+  },
+  buttonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
   },
 });
 

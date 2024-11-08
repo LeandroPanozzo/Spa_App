@@ -3,7 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createDrawerNavigator, DrawerToggleButton } from '@react-navigation/drawer';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AuthProvider, useAuth } from './pages/AuthContext';
-import { View, Image, StyleSheet } from 'react-native';
+import { View, Image, StyleSheet, Text } from 'react-native';
 import HomeScreen from './pages/HomeScreen';
 import LoginScreen from './pages/LoginScreen';
 import RegisterScreen from './pages/RegisterScreen';
@@ -12,21 +12,24 @@ import AppointmentsList from './pages/AppointmentsList';
 import CommentsList from './pages/CommentsList';
 import Announcements from './pages/Announcements';
 import UserEdit from './pages/UserEdit';
-import PaymentPage from './pages/PaymentPage'; // Ajusta según la ruta real
+import PaymentPage from './pages/PaymentPage';
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
 
-// Componente de encabezado personalizado con botón de hamburguesa
-const CustomHeader = () => (
+// Componente de encabezado personalizado con título encima del logo
+const CustomHeader = ({ title }) => (
   <View style={styles.header}>
-    <DrawerToggleButton style={styles.hamburger} />
+    <View style={styles.hamburgerContainer}>
+      <DrawerToggleButton style={styles.hamburger} />
+    </View>
     <View style={styles.headerContent}>
+      <Text style={styles.headerTitle}>{title}</Text>
       <Image source={require('./assets/logo.png')} style={styles.logo} />
     </View>
+    <View style={styles.hamburgerPlaceholder} /> 
   </View>
 );
-
 
 const AppNavigator = () => {
   const { isAuthenticated } = useAuth();
@@ -34,9 +37,9 @@ const AppNavigator = () => {
   return (
     <Drawer.Navigator
       initialRouteName="Home"
-      screenOptions={{
-        header: () => <CustomHeader />, // Definimos el encabezado personalizado
-      }}
+      screenOptions={({ route }) => ({
+        header: () => <CustomHeader title={route.name} />, // Pasa el nombre de la ruta como título
+      })}
     >
       {isAuthenticated ? (
         <>
@@ -46,7 +49,6 @@ const AppNavigator = () => {
           <Drawer.Screen name="Comentarios" component={CommentsList} />
           <Drawer.Screen name="Anuncios" component={Announcements} />
           <Drawer.Screen name="Editar perfil" component={UserEdit} />
-        
         </>
       ) : (
         <>
@@ -55,7 +57,6 @@ const AppNavigator = () => {
           <Drawer.Screen name="Register" component={RegisterScreen} />
         </>
       )}
-      
     </Drawer.Navigator>
   );
 };
@@ -64,10 +65,9 @@ const App = () => {
   return (
     <AuthProvider>
       <NavigationContainer>
-        <Stack.Navigator>
-          <Stack.Screen name = "AppNavigator" component = {AppNavigator}/>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="AppNavigator" component={AppNavigator} />
           <Stack.Screen name="Payment" component={PaymentPage} />
-          
         </Stack.Navigator>
       </NavigationContainer>
     </AuthProvider>
@@ -80,19 +80,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 10,
     backgroundColor: '#ffffff',
+    justifyContent: 'space-between', // Distribuye el botón de hamburguesa y el contenido del encabezado
+  },
+  headerContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1, // Hace que ocupe el espacio central
+    flexDirection: 'column', // Coloca el título encima del logo
+  },
+  hamburgerContainer: {
+    width: 40, // Asegura el ancho para el botón de hamburguesa a la izquierda
+    alignItems: 'flex-start',
   },
   hamburger: {
     marginRight: 10,
   },
-  headerContent: {
-    flex: 1, // Toma todo el espacio disponible
-    alignItems: 'center', // Alinea el logo verticalmente
-    justifyContent: 'center', // Centra horizontalmente el logo
-    marginRight: '15px'
+  hamburgerPlaceholder: {
+    width: 40, // Asegura un espacio vacío a la derecha para balancear el diseño
   },
   logo: {
-    width: 60,
-    height: 60,
+    width: 40,
+    height: 40,
+    marginTop: 5, // Espacio entre el título y el logo
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: 20,
   },
 });
 

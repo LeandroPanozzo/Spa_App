@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, FlatList, Alert, TouchableOpacity, StyleSheet, Modal, Linking } from 'react-native';
+import { ScrollView, View, Text, Button, FlatList, Modal, TouchableOpacity, StyleSheet } from 'react-native';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { API_URL } from './config';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import moment from 'moment';
+import Icon from 'react-native-vector-icons/MaterialIcons'; // Importamos los íconos
+
 
 export function AppointmentsList() {
   const [appointments, setAppointments] = useState([]);
@@ -15,13 +17,14 @@ export function AppointmentsList() {
   const [selectedServices, setSelectedServices] = useState([]);
   const [selectedProfessional, setSelectedProfessional] = useState(null);
   const [appointmentDate, setAppointmentDate] = useState(new Date());
+  const [appointmentTime, setAppointmentTime] = useState('');
   const { isAuthenticated } = useAuth();
   const navigation = useNavigation();
   const [error, setError] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
   const [showProfessionalModal, setShowProfessionalModal] = useState(false);
   const [showServiceModal, setShowServiceModal] = useState(false);
-  
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -30,7 +33,6 @@ export function AppointmentsList() {
       fetchAppointments();
       fetchServices();
       fetchProfessionals();
-      
     }
   }, [isAuthenticated, navigation]);
 
@@ -39,13 +41,10 @@ export function AppointmentsList() {
     try {
       const response = await axios.get(`${API_URL}/sentirseBien/api/v1/appointments/`);
       setAppointments(response.data);
-      
     } catch (error) {
       setError(`Error al cargar las citas: ${error.message}`);
     }
   };
-
-  
 
   const fetchServices = async () => {
     setError('');
@@ -68,7 +67,7 @@ export function AppointmentsList() {
   };
 
   const handleAppointmentSubmit = async () => {
-    if (!selectedProfessional || selectedServices.length === 0 || !appointmentDate) {
+    if (!selectedProfessional || selectedServices.length === 0 || !appointmentDate || !appointmentTime) {
       setError('Por favor, completa todos los campos.');
       return;
     }
@@ -77,6 +76,7 @@ export function AppointmentsList() {
       professional_id: selectedProfessional.id,
       services_ids: selectedServices.map(service => service.id),
       appointment_date: appointmentDate,
+      appointment_time: appointmentTime,
       discount: 0.1.toFixed(2),
     };
 
@@ -85,7 +85,7 @@ export function AppointmentsList() {
       setAppointments(prev => [...prev, response.data]);
       resetForm();
       Toast.show({ text1: 'Cita creada con éxito!' });
-      navigation.navigate('Payment', {appointmentId: response.data.id })
+      navigation.navigate('Payment', { appointmentId: response.data.id });
     } catch (error) {
       setError(`Error al crear la cita: ${error.message}`);
     }
@@ -95,67 +95,34 @@ export function AppointmentsList() {
     setSelectedServices([]);
     setSelectedProfessional(null);
     setAppointmentDate(new Date());
+    setAppointmentTime('');
   };
 
-  axios.interceptors.request.use(
-    async (config) => {
-        const token = await AsyncStorage.getItem('access_token'); // Cambiado a AsyncStorage
-        if (token) {
-            config.headers['Authorization'] = `Bearer ${token}`;
-        }
-        return config;
-    },
-    (error) => Promise.reject(error)
-);
-
-axios.interceptors.response.use(
-    (response) => response,
-    async (error) => {
-        const originalRequest = error.config;
-        if (error.response.status === 401 && !originalRequest._retry) {
-            originalRequest._retry = true;
-            try {
-                const refreshToken = await AsyncStorage.getItem('refresh_token'); // Cambiado a AsyncStorage
-                const response = await axios.post(`${API_URL}/api/token/refresh/`, { refresh: refreshToken });
-                await AsyncStorage.setItem('access_token', response.data.access); // Cambiado a AsyncStorage
-                return axios(originalRequest);
-            } catch {
-                logout();
-                return Promise.reject(error);
-            }
-        }
-        return Promise.reject(error);
+  const handleDatePickerChange = (event, selectedDate) => {
+    if (event.type === 'dismissed') {
+      setShowDatePicker(false);
+    } else {
+      setAppointmentDate(selectedDate);
+      setShowDatePicker(false);
     }
-);
-
-  const handleDeleteAppointment = async (id) => {
-    
-    Alert.alert(
-      "Confirmar Eliminación",
-      "¿Estás seguro de que deseas eliminar esta cita?",
-      [
-        { text: "Cancelar", style: "cancel" },
-        { text: "Eliminar", onPress: async () => {
-            try {
-              console.log(`Intentando eliminar cita con ID: ${id}`); // Verificación
-              await axios.delete(`${API_URL}/sentirseBien/api/v1/appointments/${id}/`);
-              setAppointments(prev => prev.filter(appointment => appointment.id !== id));
-              Toast.show({ text1: 'Cita eliminada!' });
-            } catch (error) {
-              setError(`Error al eliminar la cita: ${error.message}`);
-            }
-          }
-        }
-      ]
-    );
   };
 
+  const handleTimePickerChange = (event, selectedTime) => {
+    if (event.type === 'dismissed') {
+      setShowTimePicker(false);
+    } else {
+      setAppointmentTime(moment(selectedTime).format('HH:mm')); // Formato de hora
+      setShowTimePicker(false);
+    }
+  };
+
+  // Función para alternar la selección de servicios
   const toggleServiceSelection = (service) => {
     setSelectedServices(prevSelected => {
       if (prevSelected.find(selected => selected.id === service.id)) {
-        return prevSelected.filter(selected => selected.id !== service.id);
+        return prevSelected.filter(selected => selected.id !== service.id); // Desmarcar si ya está seleccionado
       } else {
-        return [...prevSelected, service];
+        return [...prevSelected, service]; // Marcar como seleccionado
       }
     });
   };
@@ -165,27 +132,31 @@ axios.interceptors.response.use(
       <Text>Profesional: {item.professional.first_name} {item.professional.last_name}</Text>
       <Text>Servicios: {item.services_names.join(', ')}</Text>
       <Text>{new Date(item.appointment_date).toLocaleString()}</Text>
-  
-      {/* Mostrar el botón de pagar o descargar según el estado del payment */}
-      {!item.payment ? (
-        <Button
-        title="Pague desde la web"
-        
-        color="green"
-      />
-      ) : (
-        <Button
-          title="Descargar"
-          onPress={() => Linking.openURL(`${API_URL}/sentirseBien/api/v1/appointments/${item.id}/download_invoice/`)}
-          color="blue"
-        />
-      )}
-      <Button title="Eliminar" onPress={() => handleDeleteAppointment(item.id)} color="red" />
+
+      <View style={styles.buttonContainer}>
+        {!item.payment ? (
+          <Button
+            title="Pague desde la web"
+            onPress={() => Linking.openURL(`${API_URL}/sentirseBien/api/v1/appointments/${item.id}/payment/`)}
+            color="#00be3f"
+          />
+        ) : (
+          <Button
+            title="Descargar"
+            onPress={() => Linking.openURL(`${API_URL}/sentirseBien/api/v1/appointments/${item.id}/download_invoice/`)}
+            color="blue"
+          />
+        )}
+      </View>
+
+      <View style={styles.buttonContainer}>
+        <Button title="Eliminar" onPress={() => handleDeleteAppointment(item.id)} color="red" />
+      </View>
     </View>
   );
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <Text style={styles.title}>Lista de Citas</Text>
       {error && <Text style={styles.errorText}>{error}</Text>}
 
@@ -231,7 +202,13 @@ axios.interceptors.response.use(
               )}
               keyExtractor={(item) => item.id.toString()}
             />
-            <Button title="Cerrar" onPress={() => setShowProfessionalModal(false)} />
+            <Button
+              title="Cerrar"
+              onPress={() => setShowProfessionalModal(false)}
+              style={[styles.button, styles.closeButton]}
+              titleStyle={styles.buttonText}
+              color="red"
+            />
           </View>
         </View>
       </Modal>
@@ -241,9 +218,7 @@ axios.interceptors.response.use(
         style={[styles.input, styles.serviceButton]}
       >
         <Text>
-          {selectedServices.length > 0
-            ? selectedServices.map(service => `${service.name} ($${service.price})`).join(', ')
-            : 'Selecciona Servicios'}
+          {selectedServices.length > 0 ? selectedServices.map(service => service.name).join(', ') : 'Selecciona Servicios'}
         </Text>
       </TouchableOpacity>
 
@@ -261,110 +236,230 @@ axios.interceptors.response.use(
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={styles.serviceItem}
-                  onPress={() => toggleServiceSelection(item)}
+                  onPress={() => toggleServiceSelection(item)} // Usamos la función aquí
                 >
-                  <Text>{item.name} - ${item.price}</Text>
-                  {selectedServices.find(service => service.id === item.id) && <Text>✓</Text>}
+                  <View style={styles.serviceItemContainer}>
+                    <Text>{item.name}</Text>
+                    {selectedServices.find(service => service.id === item.id) && (
+                      <Icon name="check-circle" size={20} color="green" />
+                    )}
+                  </View>
                 </TouchableOpacity>
               )}
               keyExtractor={(item) => item.id.toString()}
             />
-            <Button title="Cerrar" onPress={() => setShowServiceModal(false)} />
+            <Button
+              title="Cerrar"
+              onPress={() => setShowServiceModal(false)}
+              style={[styles.button, styles.closeButton]}
+              color="red"
+            />
           </View>
         </View>
       </Modal>
 
-      <Button title="Selecciona Fecha y Hora" onPress={() => setShowDatePicker(true)} />
-      {showDatePicker && (
-        <DateTimePicker
-          value={appointmentDate}
-          mode="datetime"
-          display="default"
-          onChange={(event, selectedDate) => {
-            setShowDatePicker(false);
-            if (selectedDate) setAppointmentDate(selectedDate);
-          }}
-        />
-      )}
+      <TouchableOpacity
+        onPress={() => setShowDatePicker(true)}
+        style={[styles.input, styles.serviceButton]}
+      >
+        <Text>{appointmentDate ? moment(appointmentDate).format('LL') : 'Selecciona Fecha'}</Text>
+      </TouchableOpacity>
 
-      <Button title="Crear Cita" onPress={handleAppointmentSubmit} />
-      <Toast ref={Toast.setRef} />
-    </View>
+      <Modal
+        visible={showDatePicker}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowDatePicker(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Selecciona Fecha</Text>
+            <DateTimePicker
+              value={appointmentDate}
+              mode="date"
+              onChange={handleDatePickerChange}
+              display="default"
+            />
+            <Button
+              title="Cerrar"
+              onPress={() => setShowDatePicker(false)}
+              style={[styles.button, styles.closeButton]}
+              color="red"
+            />
+          </View>
+        </View>
+      </Modal>
+
+      <TouchableOpacity
+        onPress={() => setShowTimePicker(true)}
+        style={[styles.input, styles.serviceButton]}
+      >
+        <Text>{appointmentTime ? appointmentTime : 'Selecciona Hora'}</Text>
+      </TouchableOpacity>
+
+      <Modal
+        visible={showTimePicker}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowTimePicker(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Selecciona Hora</Text>
+            <DateTimePicker
+              value={new Date()}
+              mode="time"
+              onChange={handleTimePickerChange}
+              display="default"
+            />
+            <Button
+              title="Cerrar"
+              onPress={() => setShowTimePicker(false)}
+              style={[styles.button, styles.closeButton]}
+              color="red"
+            />
+          </View>
+        </View>
+      </Modal>
+
+      <Button title="Crear Cita" onPress={handleAppointmentSubmit} color= "#00be3f" style={styles.buttonContainerr} />
+      <Text style={styles.modalTitle}></Text>
+
+    </ScrollView>
   );
 }
 
+
+
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
-    backgroundColor: '#fff',
-    flex: 1, // Added to allow proper height for FlatList
+    flex: 1,
+    backgroundColor: '#f9f9f9',
+    padding: 16,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 20,
+    color: '#ff7f8a',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#444',
+    marginTop: 20,
+    marginBottom: 10,
+    textAlign: 'center',
+    color: '#ff7f8a'
   },
   errorText: {
     color: 'red',
-    marginBottom: 10,
+    fontSize: 16,
+    marginBottom: 8,
+    textAlign: 'center',
   },
   appointmentItem: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-  },
-  subtitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginVertical: 10,
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 10,
+    marginVertical: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   input: {
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    marginBottom: 10,
-    paddingHorizontal: 10,
-    justifyContent: 'center',
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: '#e8f4f8',
+    marginVertical: 10,
   },
   professionalButton: {
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#ffffff',
+    borderColor: '#000000', // Color del borde negro
+  borderWidth: 1,         // Ancho del borde (puedes ajustar según prefieras)
   },
   serviceButton: {
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#ffffff',
+    borderColor: '#000000', // Color del borde negro
+  borderWidth: 1,         // Ancho del borde (puedes ajustar según prefieras)
+  },
+  dateButton: {
+    backgroundColor: '#ffffff',
+    borderColor: '#000000', // Color del borde negro
+  borderWidth: 1,         // Ancho del borde (puedes ajustar según prefieras)
   },
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
-    width: '80%',
-    backgroundColor: '#fff',
+    backgroundColor: 'white',
+    padding: 10,
+    marginHorizontal: 10,
     borderRadius: 10,
-    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
     elevation: 5,
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 2,
+    color: '#333',
+    textAlign: 'center',
   },
   professionalItem: {
-    padding: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    borderBottomColor: '#ddd',
   },
   serviceItem: {
-    padding: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    borderBottomColor: '#ddd',
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  dateTimePicker: {
+    marginVertical: 5,
+  },
+  button: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    marginVertical: 8,
+    marginTop: 10,
+  },
+  closeButton: {
+    backgroundColor: '#d9534f',
+  },
+  createButton: {
+    backgroundColor: '#5cb85c',
+    borderRadius: 20,
   },
   listContainer: {
-    flexGrow: 1,
+    paddingBottom: 10,
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  buttonContainer: {
+    marginBottom: 5, // Añadimos separación entre los botones
+  },
+  buttonContainerr: {
+    marginBottom: 50, // Añadimos separación entre los botones
   },
 });
+
 
 export default AppointmentsList;

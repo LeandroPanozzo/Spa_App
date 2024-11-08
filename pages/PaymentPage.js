@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
-import {Picker} from '@react-native-picker/picker';
+import { Picker } from '@react-native-picker/picker';
 import { API_URL } from './config';
-
 
 export function PaymentPage() {
   const route = useRoute();
@@ -23,12 +22,11 @@ export function PaymentPage() {
 
   if (!appointmentId) {
     return (
-        
       <View>
         <Text>Error: No se proporcionó el ID de la cita.</Text>
       </View>
     );
-}
+  }
 
   useEffect(() => {
     const fetchPaymentTypes = async () => {
@@ -101,11 +99,9 @@ export function PaymentPage() {
     }
   };
 
-  
-
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Completar Pago</Text>
+    <ScrollView style={styles.container}>
+      <Text style={styles.title1}>Completar Pago</Text>
       <Text style={styles.title}>Por reservar desde la APP tiene un 10% de descuento si completa su pago ahora mismo</Text>
       <Text style={styles.label}>Número de Tarjeta</Text>
       <TextInput
@@ -141,10 +137,10 @@ export function PaymentPage() {
       <TouchableOpacity style={styles.buttonContainer} onPress={handlePaymentSubmit}>
         <Text style={styles.buttonText}>Pagar</Text>
       </TouchableOpacity>
-      <Text style={styles.label}>Total a paga {totalPayment}</Text>
+      <Text style={styles.label}>Total a pagar: {totalPayment}</Text>
       <Text style={styles.warningText}>Por favor, preséntese a la cita con la factura de pago.</Text>
       <Toast />
-    </View>
+    </ScrollView>
   );
 }
 
@@ -154,10 +150,16 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#f8f9fa',
   },
+  title1: {
+    fontSize: 32,
+    marginTop: 20,
+    color: '#333',
+    textAlign: 'center',
+  },
   title: {
     fontSize: 32,
     marginBottom: 20,
-    color: '#ff7f8a',
+    color: 'red',
     textAlign: 'center',
   },
   label: {
@@ -187,7 +189,7 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 6,
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 10,
   },
   buttonText: {
     color: '#fff',
@@ -197,7 +199,10 @@ const styles = StyleSheet.create({
     color: 'red',
     textAlign: 'center',
     fontSize: 18,
-    marginTop: 20,
+    marginTop: 10,
+    marginBottom: 20,
+    flexWrap: 'wrap', // Hace que el texto se ajuste dentro del contenedor
+    width: '100%',    // Asegura que el texto ocupe todo el ancho disponible
   },
 });
 

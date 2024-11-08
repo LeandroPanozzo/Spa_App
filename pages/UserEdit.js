@@ -1,7 +1,6 @@
-// UserEdit.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Toast } from 'react-native-toast-message'; // Asegúrate de tener react-native-toast-message instalado
 import { useAuth } from './AuthContext';
 import { API_URL } from './config'; // Importa la URL de configuración
@@ -35,7 +34,6 @@ export function UserEdit() {
                 password: '',
                 confirmPassword: '',
             });
-            
         } catch {
             console.error("Error details:", error); // Log para más detalles
             setError('Error al cargar los datos del usuario');
@@ -43,36 +41,36 @@ export function UserEdit() {
     };
 
     // Configuración de interceptores de axios
-axios.interceptors.request.use(
-    async (config) => {
-        const token = await AsyncStorage.getItem('access_token'); // Cambiado a AsyncStorage
-        if (token) {
-            config.headers['Authorization'] = `Bearer ${token}`;
-        }
-        return config;
-    },
-    (error) => Promise.reject(error)
-);
-
-axios.interceptors.response.use(
-    (response) => response,
-    async (error) => {
-        const originalRequest = error.config;
-        if (error.response.status === 401 && !originalRequest._retry) {
-            originalRequest._retry = true;
-            try {
-                const refreshToken = await AsyncStorage.getItem('refresh_token'); // Cambiado a AsyncStorage
-                const response = await axios.post(`${API_URL}/api/token/refresh/`, { refresh: refreshToken });
-                await AsyncStorage.setItem('access_token', response.data.access); // Cambiado a AsyncStorage
-                return axios(originalRequest);
-            } catch {
-                logout();
-                return Promise.reject(error);
+    axios.interceptors.request.use(
+        async (config) => {
+            const token = await AsyncStorage.getItem('access_token'); // Cambiado a AsyncStorage
+            if (token) {
+                config.headers['Authorization'] = `Bearer ${token}`;
             }
+            return config;
+        },
+        (error) => Promise.reject(error)
+    );
+
+    axios.interceptors.response.use(
+        (response) => response,
+        async (error) => {
+            const originalRequest = error.config;
+            if (error.response.status === 401 && !originalRequest._retry) {
+                originalRequest._retry = true;
+                try {
+                    const refreshToken = await AsyncStorage.getItem('refresh_token'); // Cambiado a AsyncStorage
+                    const response = await axios.post(`${API_URL}/api/token/refresh/`, { refresh: refreshToken });
+                    await AsyncStorage.setItem('access_token', response.data.access); // Cambiado a AsyncStorage
+                    return axios(originalRequest);
+                } catch {
+                    logout();
+                    return Promise.reject(error);
+                }
+            }
+            return Promise.reject(error);
         }
-        return Promise.reject(error);
-    }
-);
+    );
 
     const handleChange = (name, value) => {
         setFormData((prevData) => ({ ...prevData, [name]: value }));
@@ -102,7 +100,7 @@ axios.interceptors.response.use(
 
     return (
         <View style={styles.container}>
-            <Text style={styles.pageTitle}>Editar Perfill</Text>
+            <Text style={styles.pageTitle}>Editar Perfil</Text>
             {error && <Text style={styles.errorText}>{error}</Text>}
             <TextInput
                 style={styles.input}
@@ -142,7 +140,14 @@ axios.interceptors.response.use(
                 secureTextEntry
                 onChangeText={(value) => handleChange('confirmPassword', value)}
             />
-            <Button title="Guardar cambios" onPress={handleSubmit} />
+            <View style={styles.buttonContainer}>
+                <TouchableOpacity
+                    style={styles.button}
+                    onPress={handleSubmit}
+                >
+                    <Text style={styles.buttonContainer}>Guardar cambios</Text>
+                </TouchableOpacity>
+            </View>
         </View>
     );
 }
@@ -151,13 +156,15 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         justifyContent: 'center',
-        padding: 20,
-        backgroundColor: '#f9f9f9',
+        padding: 30,
+        backgroundColor: '#f1f1f1',
     },
     pageTitle: {
-        fontSize: 24,
+        fontSize: 28,
+        fontWeight: 'bold',
         textAlign: 'center',
         marginBottom: 20,
+        color: '#ff7f8a',
     },
     errorText: {
         color: 'red',
@@ -165,11 +172,24 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     input: {
-        height: 40,
+        height: 50,
         borderColor: '#ccc',
         borderWidth: 1,
+        borderRadius: 10,
         marginBottom: 15,
-        paddingHorizontal: 10,
+        paddingHorizontal: 15,
+        backgroundColor: '#fff',
+        fontSize: 16,
+    },
+    buttonContainer: {
+        padding: 8,
+        borderRadius: 30,
+        overflow: 'hidden',
+        backgroundColor: '#28a745',
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#fff',
+        textAlign: 'center'
     },
 });
 
